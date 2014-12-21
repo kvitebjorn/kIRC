@@ -34,11 +34,12 @@ public class KIRCFrame extends javax.swing.JFrame
         channelPane.addTab(s, panel);
     }
     
-    public void displayMessage(final String messageToDisplay)
+    public void displayMessage(final String messageToDisplay, int channelIndex)
     {
         SwingUtilities.invokeLater(() ->
         {
-            ChannelPane channelArea = (ChannelPane)channelPane.getSelectedComponent();
+            ChannelPane channelArea = (ChannelPane)channelPane.getComponentAt(channelIndex);
+
             if(channelArea != null)
                 channelArea.getTextArea().append(messageToDisplay);
         });
@@ -57,6 +58,21 @@ public class KIRCFrame extends javax.swing.JFrame
         ChannelPane channelArea = new ChannelPane();
         channelArea.setLayout(new GridLayout(1, 1));
         return channelArea;
+    }
+    
+    public void setFocusOnChannel(int i)
+    {
+        channelPane.setSelectedIndex(i);
+    }
+    
+    public int getChannelFocus()
+    {
+        return channelPane.getSelectedIndex();
+    }
+    
+    public int getChannelPaneSize()
+    {
+        return channelPane.getTabCount();
     }
 
     /**

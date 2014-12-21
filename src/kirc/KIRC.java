@@ -10,6 +10,8 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.InetAddress;
 
+import java.util.ArrayList;
+
 public class KIRC
 {
     private BufferedWriter output; //output stream to server
@@ -17,6 +19,7 @@ public class KIRC
     private Socket client;
     
     KIRCFrame _frame;
+    private ArrayList<Channel> _channels;
     private String _host;
     private String _channel;
     private String _nick;
@@ -28,6 +31,11 @@ public class KIRC
         _host    = host;
         _channel = channel;
         _nick    = nick;
+        
+        _channels = new ArrayList<>();
+        
+        //add host to channel list
+        _channels.add(new Channel(_host, "", ""));
         
         _frame.getKIRCFrame().setVisible(true);
     }
@@ -44,7 +52,7 @@ public class KIRC
         }
         catch(EOFException eofException)
         {
-            _frame.getKIRCFrame().displayMessage("\nClient terminated connection");
+            _frame.getKIRCFrame().displayMessage("\nClient terminated connection", 0);
         }
         catch(IOException ioException)
         {
@@ -57,11 +65,13 @@ public class KIRC
     }
     
     private void connectToServer() throws IOException
-    {
-        _frame.getKIRCFrame().displayMessage("Attempting connection\n");
-        client = new Socket(InetAddress.getByName(_host), 6667);
+    {     
         _frame.getKIRCFrame().addTab(_host);
-        _frame.getKIRCFrame().displayMessage("Connected to: " + client.getInetAddress().getHostName());
+        _frame.getKIRCFrame().displayMessage("Attempting connection\n", 0);
+        
+        client = new Socket(InetAddress.getByName(_host), 6667);
+
+        _frame.getKIRCFrame().displayMessage("\nConnected to: " + client.getInetAddress().getHostName(), 0);
     }
     
     private void getStreams() throws IOException
@@ -71,7 +81,7 @@ public class KIRC
         
         input = new BufferedReader(new InputStreamReader(client.getInputStream()));
         
-        _frame.getKIRCFrame().displayMessage("\nAcquired IO streams\n");
+        _frame.getKIRCFrame().displayMessage("\nAcquired IO streams\n", 0);
     }
     
     private void processConnection() throws IOException
@@ -90,7 +100,7 @@ public class KIRC
                     output.flush( );
                 }
                 else
-                    _frame.getKIRCFrame().displayMessage("\n" + msg);
+                    _frame.getKIRCFrame().displayMessage("\n" + msg, 0); // figure out which server tab to display message in. need to parse for PRIVMSG
             }
             catch(IOException ioException)
             {
@@ -101,7 +111,7 @@ public class KIRC
     
     private void closeConnection()
     {
-        _frame.getKIRCFrame().displayMessage("\nClosing connection");
+        _frame.getKIRCFrame().displayMessage("\nClosing connection", 0);
         _frame.getKIRCFrame().setTextFieldEditable(false);
         
         try
@@ -124,19 +134,19 @@ public class KIRC
                     _nick + " :" + _nick + "\r\n";
             output.write(userMsg); 
             output.flush();
-            _frame.getKIRCFrame().displayMessage("\n" + userMsg);
+            _frame.getKIRCFrame().displayMessage("\n" + userMsg, 0);
             
             String nickMsg = "NICK " + _nick + "\r\n";
             output.write(nickMsg);
             output.flush();
-            _frame.getKIRCFrame().displayMessage("\n" + nickMsg);
+            _frame.getKIRCFrame().displayMessage("\n" + nickMsg, 0);
             
             //wait for server here
             waitForConn();
         }
         catch(IOException ioException)
         {
-            _frame.getKIRCFrame().displayMessage("\nError writing object");
+            _frame.getKIRCFrame().displayMessage("\nError writing object", 0);
         }
     }
     
@@ -146,7 +156,7 @@ public class KIRC
         {
             while((msg = input.readLine()) != null)
             {
-                _frame.getKIRCFrame().displayMessage("\n" + msg);
+                _frame.getKIRCFrame().displayMessage("\n" + msg, 0);
                 if(msg.indexOf("004") >= 0)
                     break;
             }
@@ -163,8 +173,12 @@ public class KIRC
         {
             output.write("JOIN " + _channel + "\r\n");
             output.flush();
+
+            _channels.add(new Channel(_channel, "", ""));
             _frame.getKIRCFrame().addTab(_channel);
-            _frame.getKIRCFrame().displayMessage("Joining " + _channel + "...");
+            int channelIndex = _frame.getKIRCFrame().getChannelPaneSize() -1;
+            _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
+            _frame.getKIRCFrame().displayMessage("Joining " + _channel + "...", channelIndex);
         }
         catch(IOException ioException)
         {
@@ -172,23 +186,30 @@ public class KIRC
         }
     }
      
-    private void sendData(String message)
+    private void sendData(String message, int channelIndex)
     {
         try
         {
-            output.write("PRIVMSG " + _channel + " :" + message + "\r\n");
+            //get focused channel's name
+            String channelName = _channels.get(channelIndex).getChannelName();
+            
+            output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
             output.flush();
-            _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message);
+            
+            _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
         }
         catch(IOException ioException)
         {
-            _frame.getKIRCFrame().displayMessage("\nError writing object");
+            _frame.getKIRCFrame().displayMessage("\nError writing object", channelIndex);
         }
     }
     
     public void enterFieldFired(String msg)
     {
-        sendData(msg);
+        // get the index of the current channel tab focus
+        int i = _frame.getKIRCFrame().getChannelFocus();
+        
+        sendData(msg, i);
     }
     
     public String getNick()
