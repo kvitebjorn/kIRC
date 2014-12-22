@@ -2,7 +2,7 @@ package kirc;
 
 import java.util.ArrayList;
 
-public class Channel 
+public class Channel
 {
     private String _channelName;
     private String _banner;

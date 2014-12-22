@@ -92,6 +92,7 @@ public class KIRC
         {
             try
             {
+                // move all this to PARSE.java and refactor
                 msg = (String) input.readLine();
                 
                 if (msg.startsWith("PING ")) 
@@ -100,13 +101,36 @@ public class KIRC
                     output.flush( );
                 }
                 else
-                    _frame.getKIRCFrame().displayMessage("\n" + msg, 0); // figure out which server tab to display message in. need to parse for PRIVMSG
+                {
+                    String[] smsg = msg.split(" ");
+                    if(smsg[1].equals("PRIVMSG"))
+                    {
+                        String sender     = smsg[0].split("!")[0].substring(1);
+                        String channel    = smsg[2];
+                        String channelMsg = sender + "> " + smsg[3].substring(1);
+                        
+                        int channelIndex;
+                        for(channelIndex = 0; channelIndex < _channels.size(); channelIndex++)
+                        {
+                            if(_channels.get(channelIndex).getChannelName().toLowerCase().equals(channel.toLowerCase()))
+                            {
+                                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+                                break;
+                            }
+                        } 
+                    }
+                    else
+                    {
+                        //write in server tab for now
+                        _frame.getKIRCFrame().displayMessage("\n" + msg, 0);
+                    }
+                }
             }
             catch(IOException ioException)
             {
                 ioException.printStackTrace();
             }
-        } while(!msg.equals("SERVER>>> TERMINATE"));
+        } while(!msg.equals("SERVER>>> TERMINATE")); //TODO
     }
     
     private void closeConnection()
@@ -176,7 +200,7 @@ public class KIRC
 
             _channels.add(new Channel(_channel, "", ""));
             _frame.getKIRCFrame().addTab(_channel);
-            int channelIndex = _frame.getKIRCFrame().getChannelPaneSize() -1;
+            int channelIndex = _frame.getKIRCFrame().getChannelPaneSize() - 1;
             _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
             _frame.getKIRCFrame().displayMessage("Joining " + _channel + "...", channelIndex);
         }
@@ -186,7 +210,7 @@ public class KIRC
         }
     }
      
-    private void sendData(String message, int channelIndex)
+    private void sendData(final String message, final int channelIndex)
     {
         try
         {
@@ -204,7 +228,7 @@ public class KIRC
         }
     }
     
-    public void enterFieldFired(String msg)
+    public void enterFieldFired(final String msg)
     {
         // get the index of the current channel tab focus
         int i = _frame.getKIRCFrame().getChannelFocus();

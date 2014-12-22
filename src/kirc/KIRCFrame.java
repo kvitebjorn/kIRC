@@ -28,13 +28,13 @@ public class KIRCFrame extends javax.swing.JFrame
         return this;
     }
     
-    public void addTab(String s)
+    public void addTab(final String s)
     {
         JPanel panel = (JPanel)makeChannelPanel(s);
         channelPane.addTab(s, panel);
     }
     
-    public void displayMessage(final String messageToDisplay, int channelIndex)
+    public void displayMessage(final String messageToDisplay, final int channelIndex)
     {
         SwingUtilities.invokeLater(() ->
         {
@@ -53,14 +53,14 @@ public class KIRCFrame extends javax.swing.JFrame
         });
     }
     
-    protected JComponent makeChannelPanel(String text) 
+    protected JComponent makeChannelPanel(final String text) 
     {
         ChannelPane channelArea = new ChannelPane();
         channelArea.setLayout(new GridLayout(1, 1));
         return channelArea;
     }
     
-    public void setFocusOnChannel(int i)
+    public void setFocusOnChannel(final int i)
     {
         channelPane.setSelectedIndex(i);
     }
