@@ -3,6 +3,7 @@ package kirc;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 public class ChannelPane extends JPanel
     {
@@ -16,6 +17,7 @@ public class ChannelPane extends JPanel
             textArea.setLineWrap(true);
             JScrollPane scrollPane = new JScrollPane(textArea);
             add(scrollPane);
+            scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         }
         
         public JTextArea getTextArea() { return textArea; }

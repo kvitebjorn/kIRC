@@ -19,8 +19,8 @@ public class KIRC
     private Socket client;
     
     KIRCFrame _frame;
-    private ArrayList<Channel> _channels;
-    private String _host;
+    private final ArrayList<Channel> _channels;
+    private final String _host;
     private String _channel;
     private String _nick;
     private String msg = "";
