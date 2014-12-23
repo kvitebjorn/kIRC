@@ -92,22 +92,22 @@ public class KIRC
         {
             try
             {
-                // move all this to PARSE.java and refactor
+                // move all this to Parse.java and refactor
                 msg = (String) input.readLine();
+                Message message = Parse.parseIrcMessage(msg);
                 
-                if (msg.startsWith("PING ")) 
+                if (message.getCommand().equals("PING")) 
                 {
                     output.write("PONG " + msg.substring(5) + "\r\n");
-                    output.flush( );
+                    output.flush();
                 }
                 else
                 {
-                    String[] smsg = msg.split(" ");
-                    if(smsg[1].equals("PRIVMSG"))
+                    if(message.getCommand().equals("PRIVMSG"))
                     {
-                        String sender     = smsg[0].split("!")[0].substring(1);
-                        String channel    = smsg[2];
-                        String channelMsg = sender + "> " + smsg[3].substring(1);
+                        String sender     = message.getPrefix().substring(0, message.getPrefix().indexOf("!"));
+                        String channel    = message.getParameters().get(0);
+                        String channelMsg = sender + "> " + message.getParameters().get(1);
                         
                         int channelIndex;
                         for(channelIndex = 0; channelIndex < _channels.size(); channelIndex++)
@@ -130,7 +130,7 @@ public class KIRC
             {
                 ioException.printStackTrace();
             }
-        } while(!msg.equals("SERVER>>> TERMINATE")); //TODO
+        } while(!msg.equals("SERVER TERMINATE")); //TODO
     }
     
     private void closeConnection()
