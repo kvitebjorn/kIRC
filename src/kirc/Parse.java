@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Parse 
 {
-    static Message parseIrcMessage(String message)
+    public static Message parseIrcMessage(String message)
     {
         Message msg;
         int prefixEnd = -1;

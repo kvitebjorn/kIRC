@@ -1,5 +1,6 @@
 package kirc;
 
+import java.awt.Color;
 import java.awt.GridLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -100,6 +101,7 @@ public class KIRCFrame extends javax.swing.JFrame
 
         jScrollPane1.setViewportView(jList1);
 
+        channelPane.setBackground(new java.awt.Color(204, 204, 204));
         channelPane.setBorder(null);
         channelPane.setMaximumSize(new java.awt.Dimension(100, 100));
 

@@ -34,7 +34,6 @@ public class KIRC
         
         _channels = new ArrayList<>();
         
-        //add host to channel list
         _channels.add(new Channel(_host, "", ""));
         
         _frame.getKIRCFrame().setVisible(true);
@@ -47,7 +46,7 @@ public class KIRC
             connectToServer();
             getStreams();
             sendIRCConnInfo();
-            joinChannel();
+            joinChannel(_channel);
             processConnection();
         }
         catch(EOFException eofException)
@@ -92,40 +91,12 @@ public class KIRC
         {
             try
             {
-                // move all this to Parse.java and refactor
                 msg = (String) input.readLine();
                 Message message = Parse.parseIrcMessage(msg);
                 
-                if (message.getCommand().equals("PING")) 
-                {
-                    output.write("PONG " + msg.substring(5) + "\r\n");
-                    output.flush();
-                }
-                else
-                {
-                    if(message.getCommand().equals("PRIVMSG"))
-                    {
-                        String sender     = message.getPrefix().substring(0, message.getPrefix().indexOf("!"));
-                        String channel    = message.getParameters().get(0);
-                        String channelMsg = sender + "> " + message.getParameters().get(1);
-                        
-                        int channelIndex;
-                        for(channelIndex = 0; channelIndex < _channels.size(); channelIndex++)
-                        {
-                            if(_channels.get(channelIndex).getChannelName().toLowerCase().equals(channel.toLowerCase()))
-                            {
-                                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
-                                break;
-                            }
-                        } 
-                    }
-                    else
-                    {
-                        //write in server tab for now
-                        _frame.getKIRCFrame().displayMessage("\n" + msg, 0);
-                    }
-                }
+                processCommand(message, msg);
             }
+            
             catch(IOException ioException)
             {
                 ioException.printStackTrace();
@@ -165,7 +136,6 @@ public class KIRC
             output.flush();
             _frame.getKIRCFrame().displayMessage("\n" + nickMsg, 0);
             
-            //wait for server here
             waitForConn();
         }
         catch(IOException ioException)
@@ -191,18 +161,18 @@ public class KIRC
         }
     }
     
-    private void joinChannel()
+    private void joinChannel(final String channel)
     {
         try
         {
-            output.write("JOIN " + _channel + "\r\n");
+            output.write("JOIN " + channel + "\r\n");
             output.flush();
 
-            _channels.add(new Channel(_channel, "", ""));
-            _frame.getKIRCFrame().addTab(_channel);
-            int channelIndex = _frame.getKIRCFrame().getChannelPaneSize() - 1;
+            _channels.add(new Channel(channel, "", ""));
+            _frame.getKIRCFrame().addTab(channel);
+            int channelIndex = findChannelIndex(channel);
             _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
-            _frame.getKIRCFrame().displayMessage("Joining " + _channel + "...", channelIndex);
+            _frame.getKIRCFrame().displayMessage("Joining " + channel + "...", channelIndex);
         }
         catch(IOException ioException)
         {
@@ -214,7 +184,6 @@ public class KIRC
     {
         try
         {
-            //get focused channel's name
             String channelName = _channels.get(channelIndex).getChannelName();
             
             output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
@@ -230,7 +199,6 @@ public class KIRC
     
     public void enterFieldFired(final String msg)
     {
-        // get the index of the current channel tab focus
         int i = _frame.getKIRCFrame().getChannelFocus();
         
         sendData(msg, i);
@@ -240,4 +208,77 @@ public class KIRC
     {
         return _nick;
     }
+    
+    private void processCommand(final Message message, final String originalMessage) throws IOException
+    {
+        String command    = message.getCommand();
+        String prefix     = message.getPrefix();
+        int channelIndex  = 0;
+        String channel    = "";
+        String channelMsg = "";
+        String nick       = "";
+        
+        switch(command)
+        {
+            case "PING":
+                processPING(originalMessage);
+                break;
+            case "PRIVMSG":
+                nick         = prefix.substring(0, prefix.indexOf("!~"));
+                channel      = message.getParameters().get(0);
+                channelMsg   = nick + "> " + message.getParameters().get(1);
+                channelIndex = findChannelIndex(channel);
+                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+                break;
+            case "JOIN":
+                channel           = message.getParameters().get(0);
+                channelMsg        = prefix + " " + message.getCommand() + "ED " + channel;
+                channelIndex      = findChannelIndex(channel);
+                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+                break;
+            case "PART":
+                channel           = message.getParameters().get(0);
+                channelMsg        = prefix + " " + message.getCommand() + "ED " + channel;
+                channelIndex      = findChannelIndex(channel);
+                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
+                break;
+            //etc...
+            default:
+                //write in server tab for now
+                _frame.getKIRCFrame().displayMessage("\n" + originalMessage, 0);
+                break;
+        }
+    }
+    
+    private int findChannelIndex(final String channel)
+    {
+        int channelIndex;
+        for(channelIndex = 0; channelIndex < _channels.size(); channelIndex++)
+            if(_channels.get(channelIndex).getChannelName().toLowerCase().equals(channel.toLowerCase()))
+                break;
+        return channelIndex;
+    }
+    
+    private void processPING(final String msg) throws IOException
+    {
+            output.write("PONG " + msg.substring(5) + "\r\n");
+            output.flush();
+    }
+    
+    private void processPRIVMSG(final String msg)
+    {
+        throw new UnsupportedOperationException();
+    }
+    
+    private void processJOIN(final String msg) throws IOException
+    {
+        throw new UnsupportedOperationException();
+    }
+    
+    private void processPART(final String msg) throws IOException
+    {
+        throw new UnsupportedOperationException();
+    }
+    
+    // process etc....
 }
