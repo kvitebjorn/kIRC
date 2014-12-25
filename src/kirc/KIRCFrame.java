@@ -1,7 +1,7 @@
 package kirc;
 
-import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -75,6 +75,11 @@ public class KIRCFrame extends javax.swing.JFrame
     {
         return channelPane.getTabCount();
     }
+    
+    public void setUserList(String[] users)
+    {
+        userList.setListData(users);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -87,7 +92,7 @@ public class KIRCFrame extends javax.swing.JFrame
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        userList = new javax.swing.JList();
         channelPane = new javax.swing.JTabbedPane();
         enterField = new javax.swing.JTextField();
         userNameLabel = new javax.swing.JLabel();
@@ -99,7 +104,7 @@ public class KIRCFrame extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane1.setViewportView(userList);
 
         channelPane.setBackground(new java.awt.Color(204, 204, 204));
         channelPane.setBorder(null);
@@ -236,11 +241,11 @@ public class KIRCFrame extends javax.swing.JFrame
     private javax.swing.JTextField enterField;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JList jList1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JList userList;
     private javax.swing.JLabel userNameLabel;
     // End of variables declaration//GEN-END:variables
 }

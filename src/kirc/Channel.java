@@ -1,6 +1,7 @@
 package kirc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Channel
 {
@@ -8,16 +9,10 @@ public class Channel
     private String _banner;
     private ArrayList<String> _users;
     
-    public Channel(String name, String banner, String usersListString)
+    public Channel(String name)
     {
         _channelName = name;
-        _banner = banner;
-        fillUsersList(usersListString);
-    }
-    
-    private void fillUsersList(String usersList)
-    {
-        return; //TODO
+        _users = new ArrayList<>();
     }
     
     public String getChannelName()
@@ -28,5 +23,10 @@ public class Channel
     public String getBanner()
     {
         return _banner;
+    }
+    
+    public void setUsersList(String[] usersList)
+    {
+        _users.addAll(Arrays.asList(usersList));
     }
 }

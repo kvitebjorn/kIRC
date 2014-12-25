@@ -34,7 +34,7 @@ public class KIRC
         
         _channels = new ArrayList<>();
         
-        _channels.add(new Channel(_host, "", ""));
+        _channels.add(new Channel(_host));
         
         _frame.getKIRCFrame().setVisible(true);
     }
@@ -46,7 +46,7 @@ public class KIRC
             connectToServer();
             getStreams();
             sendIRCConnInfo();
-            joinChannel(_channel);
+            joinChannel(_channel); //temporary: call from sendData after constructing a JOIN command
             processConnection();
         }
         catch(EOFException eofException)
@@ -168,7 +168,7 @@ public class KIRC
             output.write("JOIN " + channel + "\r\n");
             output.flush();
 
-            _channels.add(new Channel(channel, "", ""));
+            _channels.add(new Channel(channel));
             _frame.getKIRCFrame().addTab(channel);
             int channelIndex = findChannelIndex(channel);
             _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
@@ -186,6 +186,8 @@ public class KIRC
         {
             String channelName = _channels.get(channelIndex).getChannelName();
             
+            //TODO: create IRC commands per user input from the text field event fire
+            // like /JOIN and /NICK, etc. Default for now is PRIVMSG
             output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
             output.flush();
             
@@ -231,18 +233,31 @@ public class KIRC
                 _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
                 break;
             case "JOIN":
-                channel           = message.getParameters().get(0);
-                channelMsg        = prefix + " " + message.getCommand() + "ED " + channel;
-                channelIndex      = findChannelIndex(channel);
+                channel      = message.getParameters().get(0);
+                channelMsg   = prefix + " " + message.getCommand() + "ED " + channel;
+                channelIndex = findChannelIndex(channel);
                 _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
                 break;
             case "PART":
-                channel           = message.getParameters().get(0);
-                channelMsg        = prefix + " " + message.getCommand() + "ED " + channel;
-                channelIndex      = findChannelIndex(channel);
+                channel      = message.getParameters().get(0);
+                channelMsg   = prefix + " " + message.getCommand() + "ED " + channel;
+                channelIndex = findChannelIndex(channel);
                 _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
                 break;
-            //etc...
+            case "353":
+                channel = message.getParameters().get(2);
+                channelIndex = findChannelIndex(channel);
+                String[] users = message.getParameters().get(3).split(" ");
+                _channels.get(channelIndex).setUsersList(users);
+                //update user list panel
+                _frame.getKIRCFrame().setUserList(users);
+                _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
+                break;
+            case "366":
+                channel = message.getParameters().get(1);
+                channelIndex = findChannelIndex(channel);
+                _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
+                break;
             default:
                 //write in server tab for now
                 _frame.getKIRCFrame().displayMessage("\n" + originalMessage, 0);
