@@ -307,4 +307,9 @@ public class KIRC
         final int channelIndex = findChannelIndex(channel);
         _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
     }
+    
+    public void removeChannel(int i)
+    {
+        _channels.remove(i);
+    }
 }

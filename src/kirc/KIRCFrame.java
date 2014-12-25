@@ -56,7 +56,7 @@ public class KIRCFrame extends javax.swing.JFrame
     
     protected JComponent makeChannelPanel(final String text) 
     {
-        ChannelPane channelArea = new ChannelPane();
+        ChannelPane channelArea = new ChannelPane(channelPane, kirc);
         channelArea.setLayout(new GridLayout(1, 1));
         return channelArea;
     }
