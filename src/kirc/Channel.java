@@ -25,8 +25,21 @@ public class Channel
         return _banner;
     }
     
+    public ArrayList<String> getUsersList()
+    {
+        return _users;
+    }
+    
     public void setUsersList(String[] usersList)
     {
         _users.addAll(Arrays.asList(usersList));
+    }
+    
+    public void addUserToList(String user)
+    {
+    }
+    
+    public void removeUserFromList(String user)
+    {
     }
 }

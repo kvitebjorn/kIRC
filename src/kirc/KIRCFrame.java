@@ -109,6 +109,13 @@ public class KIRCFrame extends javax.swing.JFrame
         channelPane.setBackground(new java.awt.Color(204, 204, 204));
         channelPane.setBorder(null);
         channelPane.setMaximumSize(new java.awt.Dimension(100, 100));
+        channelPane.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                channelPaneStateChanged(evt);
+            }
+        });
 
         enterField.addActionListener(new java.awt.event.ActionListener()
         {
@@ -183,6 +190,14 @@ public class KIRCFrame extends javax.swing.JFrame
         kirc.enterFieldFired(enterField.getText());
         enterField.setText("");
     }//GEN-LAST:event_enterFieldActionPerformed
+
+    private void channelPaneStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_channelPaneStateChanged
+    {//GEN-HEADEREND:event_channelPaneStateChanged
+        int channelIndex = channelPane.getSelectedIndex();
+        Channel ch = kirc.getChannel(channelIndex);
+        ArrayList<String> userList = ch.getUsersList();
+        setUserList(userList.toArray(new String[userList.size()]));
+    }//GEN-LAST:event_channelPaneStateChanged
 
     /**
      * @param args the command line arguments

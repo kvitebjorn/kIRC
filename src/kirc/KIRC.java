@@ -39,6 +39,11 @@ public class KIRC
         _frame.getKIRCFrame().setVisible(true);
     }
     
+    public Channel getChannel(int index)
+    {
+        return _channels.get(index);
+    }
+    
     public void runClient()
     {
         try
@@ -92,7 +97,7 @@ public class KIRC
             try
             {
                 msg = (String) input.readLine();
-                Message message = Parse.parseIrcMessage(msg);
+                final Message message = Parse.parseIrcMessage(msg);
                 
                 processCommand(message, msg);
             }
@@ -125,13 +130,13 @@ public class KIRC
     {
         try
         {
-            String userMsg = "USER " + _nick + " " + _nick + " " + 
+            final String userMsg = "USER " + _nick + " " + _nick + " " + 
                     _nick + " :" + _nick + "\r\n";
             output.write(userMsg); 
             output.flush();
             _frame.getKIRCFrame().displayMessage("\n" + userMsg, 0);
             
-            String nickMsg = "NICK " + _nick + "\r\n";
+            final String nickMsg = "NICK " + _nick + "\r\n";
             output.write(nickMsg);
             output.flush();
             _frame.getKIRCFrame().displayMessage("\n" + nickMsg, 0);
@@ -170,7 +175,7 @@ public class KIRC
 
             _channels.add(new Channel(channel));
             _frame.getKIRCFrame().addTab(channel);
-            int channelIndex = findChannelIndex(channel);
+            final int channelIndex = findChannelIndex(channel);
             _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
             _frame.getKIRCFrame().displayMessage("Joining " + channel + "...", channelIndex);
         }
@@ -184,7 +189,7 @@ public class KIRC
     {
         try
         {
-            String channelName = _channels.get(channelIndex).getChannelName();
+            final String channelName = _channels.get(channelIndex).getChannelName();
             
             //TODO: create IRC commands per user input from the text field event fire
             // like /JOIN and /NICK, etc. Default for now is PRIVMSG
@@ -201,7 +206,7 @@ public class KIRC
     
     public void enterFieldFired(final String msg)
     {
-        int i = _frame.getKIRCFrame().getChannelFocus();
+        final int i = _frame.getKIRCFrame().getChannelFocus();
         
         sendData(msg, i);
     }
@@ -213,7 +218,7 @@ public class KIRC
     
     private void processCommand(final Message message, final String originalMessage) throws IOException
     {
-        String command    = message.getCommand();
+        final String command = message.getCommand();
         
         switch(command)
         {
