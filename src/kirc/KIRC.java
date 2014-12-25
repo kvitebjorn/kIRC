@@ -214,11 +214,6 @@ public class KIRC
     private void processCommand(final Message message, final String originalMessage) throws IOException
     {
         String command    = message.getCommand();
-        String prefix     = message.getPrefix();
-        int channelIndex  = 0;
-        String channel    = "";
-        String channelMsg = "";
-        String nick       = "";
         
         switch(command)
         {
@@ -226,37 +221,19 @@ public class KIRC
                 processPING(originalMessage);
                 break;
             case "PRIVMSG":
-                nick         = prefix.substring(0, prefix.indexOf("!~"));
-                channel      = message.getParameters().get(0);
-                channelMsg   = nick + "> " + message.getParameters().get(1);
-                channelIndex = findChannelIndex(channel);
-                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+                processPRIVMSG(message);
                 break;
             case "JOIN":
-                channel      = message.getParameters().get(0);
-                channelMsg   = prefix + " " + message.getCommand() + "ED " + channel;
-                channelIndex = findChannelIndex(channel);
-                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+                processJOIN(message);
                 break;
             case "PART":
-                channel      = message.getParameters().get(0);
-                channelMsg   = prefix + " " + message.getCommand() + "ED " + channel;
-                channelIndex = findChannelIndex(channel);
-                _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
+                processPART(message);
                 break;
             case "353":
-                channel = message.getParameters().get(2);
-                channelIndex = findChannelIndex(channel);
-                String[] users = message.getParameters().get(3).split(" ");
-                _channels.get(channelIndex).setUsersList(users);
-                //update user list panel
-                _frame.getKIRCFrame().setUserList(users);
-                _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
+                process353(message, msg);
                 break;
             case "366":
-                channel = message.getParameters().get(1);
-                channelIndex = findChannelIndex(channel);
-                _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
+                process366(message, msg);
                 break;
             default:
                 //write in server tab for now
@@ -280,20 +257,49 @@ public class KIRC
             output.flush();
     }
     
-    private void processPRIVMSG(final String msg)
+    private void processPRIVMSG(final Message message) throws IOException
     {
-        throw new UnsupportedOperationException();
+        final String prefix     = message.getPrefix();
+        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String channel    = message.getParameters().get(0);
+        final String channelMsg = nick + "> " + message.getParameters().get(1);
+        final int channelIndex  = findChannelIndex(channel);
+        _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);        
     }
     
-    private void processJOIN(final String msg) throws IOException
+    private void processJOIN(final Message message) throws IOException
     {
-        throw new UnsupportedOperationException();
+        final String prefix     = message.getPrefix();
+        final String channel    = message.getParameters().get(0);
+        final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
+        final int channelIndex  = findChannelIndex(channel);
+        _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
     }
     
-    private void processPART(final String msg) throws IOException
+    private void processPART(final Message message) throws IOException
     {
-        throw new UnsupportedOperationException();
+        final String prefix     = message.getPrefix();
+        final String channel    = message.getParameters().get(0);
+        final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
+        final int channelIndex  = findChannelIndex(channel);
+        _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
     }
     
-    // process etc....
+    private void process353(final Message message, final String originalMessage) throws IOException
+    {
+        final String channel = message.getParameters().get(2);
+        final int channelIndex = findChannelIndex(channel);
+        final String[] users = message.getParameters().get(3).split(" ");
+        _channels.get(channelIndex).setUsersList(users);
+        //update user list panel
+        _frame.getKIRCFrame().setUserList(users);
+        _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
+    }
+    
+    private void process366(final Message message, final String originalMessage) throws IOException
+    {
+        final String channel = message.getParameters().get(1);
+        final int channelIndex = findChannelIndex(channel);
+        _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
+    }
 }
