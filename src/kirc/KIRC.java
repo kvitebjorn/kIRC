@@ -294,21 +294,38 @@ public class KIRC
     private void processJOIN(final Message message) throws IOException
     {
         final String prefix     = message.getPrefix();
+        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
         final String channel    = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
         final int channelIndex  = findChannelIndex(channel);
         if(channelIndex != -1)
             _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+        
+        if(!nick.equals(_nick))
+        {
+            _channels.get(channelIndex).addUserToList(nick);
+            final ArrayList<String> userList = _channels.get(channelIndex).getUsersList();
+            if(_frame.getKIRCFrame().getChannelFocus() == channelIndex)
+                _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
+        }
     }
     
     private void processPART(final Message message) throws IOException
     {
         final String prefix     = message.getPrefix();
+        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
         final String channel    = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
         final int channelIndex  = findChannelIndex(channel);
         if(channelIndex != -1)
-            _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
+        {
+            _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+        
+            _channels.get(channelIndex).removeUserFromList(nick);
+            final ArrayList<String> userList = _channels.get(channelIndex).getUsersList();
+            if(_frame.getKIRCFrame().getChannelFocus() == channelIndex)
+                _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
+        }
     }
     
     private void process353(final Message message, final String originalMessage) throws IOException

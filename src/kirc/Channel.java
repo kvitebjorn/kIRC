@@ -37,9 +37,11 @@ public class Channel
     
     public void addUserToList(String user)
     {
+        _users.add(user);
     }
     
     public void removeUserFromList(String user)
     {
+        _users.remove(user);
     }
 }

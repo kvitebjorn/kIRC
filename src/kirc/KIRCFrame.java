@@ -81,6 +81,7 @@ public final class KIRCFrame extends javax.swing.JFrame
     
     public void setUserList(String[] users)
     {
+        userList.removeAll();
         userList.setListData(users);
     }
 
