@@ -193,6 +193,7 @@ public class KIRC
             
             //TODO: create IRC commands per user input from the text field event fire
             // like /JOIN and /NICK, etc. Default for now is PRIVMSG
+            // call the functions like sendPART() from here after parse
             output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
             output.flush();
             
@@ -311,5 +312,18 @@ public class KIRC
     public void removeChannel(int i)
     {
         _channels.remove(i);
+    }
+    
+    public void sendPARTOneChannel(int channelIndex) throws IOException
+    {
+        String channelName = _channels.get(channelIndex).getChannelName();
+        output.write("PART " + channelName + " :" + "hadet" + "\r\n");
+        output.flush();
+    }
+    
+    public void sendQUIT() throws IOException
+    {
+        output.write("QUIT " + "\r\n");
+        output.flush();
     }
 }

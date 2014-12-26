@@ -1,6 +1,5 @@
 package kirc;
 
-import java.awt.GridLayout;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -31,8 +30,10 @@ public class KIRCFrame extends javax.swing.JFrame
     
     public void addTab(final String s)
     {
-        JPanel panel = (JPanel)makeChannelPanel(s);
+        JPanel panel = (JPanel)makeChannelPanel();
         channelPane.addTab(s, panel);
+        channelPane.setTabComponentAt(channelPane.indexOfComponent(panel),
+                ChannelPane.getTitlePanel(channelPane, panel, s, kirc));
     }
     
     public void displayMessage(final String messageToDisplay, final int channelIndex)
@@ -54,10 +55,9 @@ public class KIRCFrame extends javax.swing.JFrame
         });
     }
     
-    protected JComponent makeChannelPanel(final String text) 
+    protected JComponent makeChannelPanel() 
     {
-        ChannelPane channelArea = new ChannelPane(channelPane, kirc);
-        channelArea.setLayout(new GridLayout(1, 1));
+        ChannelPane channelArea = new ChannelPane();
         return channelArea;
     }
     
@@ -103,6 +103,7 @@ public class KIRCFrame extends javax.swing.JFrame
         jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
 
         jScrollPane1.setViewportView(userList);
 
