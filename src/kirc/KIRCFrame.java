@@ -5,7 +5,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-public class KIRCFrame extends javax.swing.JFrame
+public final class KIRCFrame extends javax.swing.JFrame
 {
     private final KIRC kirc;
     
@@ -19,7 +19,7 @@ public class KIRCFrame extends javax.swing.JFrame
         kirc = new KIRC(this, "irc.freenode.org", "##kirctest", "k-test");
         
         userNameLabel.setText(kirc.getNick() + " λ");
-        
+
         kirc.runClient();
     }
     
@@ -40,7 +40,9 @@ public class KIRCFrame extends javax.swing.JFrame
     {
         SwingUtilities.invokeLater(() ->
         {
-            ChannelPane channelArea = (ChannelPane)channelPane.getComponentAt(channelIndex);
+            ChannelPane channelArea = null;
+            if(channelIndex < channelPane.getTabCount())
+                channelArea = (ChannelPane)channelPane.getComponentAt(channelIndex);
 
             if(channelArea != null)
                 channelArea.getTextArea().append(messageToDisplay);
@@ -63,7 +65,8 @@ public class KIRCFrame extends javax.swing.JFrame
     
     public void setFocusOnChannel(final int i)
     {
-        channelPane.setSelectedIndex(i);
+        if(i < channelPane.getTabCount())
+            channelPane.setSelectedIndex(i);
     }
     
     public int getChannelFocus()

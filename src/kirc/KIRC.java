@@ -106,6 +106,10 @@ public class KIRC
             {
                 ioException.printStackTrace();
             }
+            catch(IndexOutOfBoundsException e)
+            {
+                //TODO
+            }
         } while(!msg.equals("SERVER TERMINATE")); //TODO
     }
     
