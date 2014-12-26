@@ -41,7 +41,7 @@ public final class KIRCFrame extends javax.swing.JFrame
         SwingUtilities.invokeLater(() ->
         {
             ChannelPane channelArea = null;
-            if(channelIndex < channelPane.getTabCount())
+            if(channelIndex < channelPane.getTabCount() && channelIndex > -1)
                 channelArea = (ChannelPane)channelPane.getComponentAt(channelIndex);
 
             if(channelArea != null)
@@ -199,8 +199,11 @@ public final class KIRCFrame extends javax.swing.JFrame
     {//GEN-HEADEREND:event_channelPaneStateChanged
         int channelIndex = channelPane.getSelectedIndex();
         Channel ch = kirc.getChannel(channelIndex);
-        ArrayList<String> userList = ch.getUsersList();
-        setUserList(userList.toArray(new String[userList.size()]));
+        if(ch != null)
+        {
+            ArrayList<String> userList = ch.getUsersList();
+            setUserList(userList.toArray(new String[userList.size()]));
+        }
     }//GEN-LAST:event_channelPaneStateChanged
 
     /**

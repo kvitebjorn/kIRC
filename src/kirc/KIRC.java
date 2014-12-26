@@ -41,7 +41,10 @@ public class KIRC
     
     public Channel getChannel(int index)
     {
-        return _channels.get(index);
+        Channel channel = null;
+        if(index < _channels.size() && index > -1)
+            channel = _channels.get(index);
+        return channel;
     }
     
     public void runClient()
@@ -91,26 +94,25 @@ public class KIRC
     private void processConnection() throws IOException
     {
         _frame.getKIRCFrame().setTextFieldEditable(true);
+        Message message = null;
         
         do
         {
             try
             {
                 msg = (String) input.readLine();
-                final Message message = Parse.parseIrcMessage(msg);
-                
-                processCommand(message, msg);
+                if(msg != null)
+                {
+                    message = Parse.parseIrcMessage(msg);
+                    processCommand(message, msg);
+                }
             }
             
             catch(IOException ioException)
             {
                 ioException.printStackTrace();
             }
-            catch(IndexOutOfBoundsException e)
-            {
-                //TODO
-            }
-        } while(!msg.equals("SERVER TERMINATE")); //TODO
+        } while(!msg.equals("SERVER TERMINATE") && msg != null); //TODO
     }
     
     private void closeConnection()
@@ -255,9 +257,20 @@ public class KIRC
     private int findChannelIndex(final String channel)
     {
         int channelIndex;
+        Boolean found = false;
+        
         for(channelIndex = 0; channelIndex < _channels.size(); channelIndex++)
             if(_channels.get(channelIndex).getChannelName().toLowerCase().equals(channel.toLowerCase()))
+            {
+                found = true;
                 break;
+            }
+        
+        if(!found)
+        {
+            channelIndex = -1;
+        }
+        
         return channelIndex;
     }
     
@@ -274,7 +287,8 @@ public class KIRC
         final String channel    = message.getParameters().get(0);
         final String channelMsg = nick + "> " + message.getParameters().get(1);
         final int channelIndex  = findChannelIndex(channel);
-        _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);        
+        if(channelIndex != -1)
+            _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);        
     }
     
     private void processJOIN(final Message message) throws IOException
@@ -283,7 +297,8 @@ public class KIRC
         final String channel    = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
         final int channelIndex  = findChannelIndex(channel);
-        _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
+        if(channelIndex != -1)
+            _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);
     }
     
     private void processPART(final Message message) throws IOException
@@ -292,35 +307,41 @@ public class KIRC
         final String channel    = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
         final int channelIndex  = findChannelIndex(channel);
-        _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
+        if(channelIndex != -1)
+            _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex); 
     }
     
     private void process353(final Message message, final String originalMessage) throws IOException
     {
         final String channel = message.getParameters().get(2);
         final int channelIndex = findChannelIndex(channel);
-        final String[] users = message.getParameters().get(3).split(" ");
-        _channels.get(channelIndex).setUsersList(users);
-        //update user list panel
-        _frame.getKIRCFrame().setUserList(users);
-        _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
+        if(channelIndex != -1)
+        {
+            final String[] users = message.getParameters().get(3).split(" ");
+            _channels.get(channelIndex).setUsersList(users);
+            //update user list panel
+            _frame.getKIRCFrame().setUserList(users);
+            _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
+        }
     }
     
     private void process366(final Message message, final String originalMessage) throws IOException
     {
         final String channel = message.getParameters().get(1);
         final int channelIndex = findChannelIndex(channel);
-        _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
+        if(channelIndex != -1)
+            _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
     }
     
     public void removeChannel(int i)
     {
-        _channels.remove(i);
+        if(i < _channels.size())
+            _channels.remove(i);
     }
     
     public void sendPARTOneChannel(int channelIndex) throws IOException
     {
-        String channelName = _channels.get(channelIndex).getChannelName();
+        final String channelName = _channels.get(channelIndex).getChannelName();
         output.write("PART " + channelName + " :" + "hadet" + "\r\n");
         output.flush();
     }
