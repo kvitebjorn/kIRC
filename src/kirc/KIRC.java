@@ -241,6 +241,9 @@ public class KIRC
             case "PART":
                 processPART(message);
                 break;
+            case "NICK":
+                processNICK(message);
+                break;
             case "353":
                 process353(message, msg);
                 break;
@@ -326,6 +329,27 @@ public class KIRC
             if(_frame.getKIRCFrame().getChannelFocus() == channelIndex)
                 _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
         }
+    }
+    
+    private void processNICK(final Message message) throws IOException
+    {
+        final String prefix     = message.getPrefix();
+        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String newNick    = message.getParameters().get(0);
+        final String newNickmsg = "\n" + nick + " is now known as " + newNick;
+        
+        //change all occurrences of nick to newNick in the channels
+        for(int i = 0; i < _channels.size(); i++)
+            for(int j = 0; j < _channels.get(i).getUsersList().size(); j++)
+                if(_channels.get(i).getUsersList().get(j).contains(nick))
+                {
+                    _channels.get(i).getUsersList().set(j, newNick);
+                    _frame.getKIRCFrame().displayMessage(newNickmsg, i);
+                }
+        final int channelFocus = _frame.getKIRCFrame().getChannelFocus();
+        if(channelFocus != -1)
+            _frame.getKIRCFrame().setUserList(_channels.get(channelFocus).getUsersList().
+                toArray(new String[_channels.get(channelFocus).getUsersList().size()]));
     }
     
     private void process353(final Message message, final String originalMessage) throws IOException
