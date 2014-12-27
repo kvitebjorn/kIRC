@@ -13,6 +13,7 @@ public class Channel
     {
         _channelName = name;
         _users = new ArrayList<>();
+        _banner = "";
     }
     
     public String getChannelName()
@@ -23,6 +24,11 @@ public class Channel
     public String getBanner()
     {
         return _banner;
+    }
+    
+    public void setBanner(String msg)
+    {
+        _banner = msg;
     }
     
     public ArrayList<String> getUsersList()

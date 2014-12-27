@@ -21,15 +21,13 @@ public class KIRC
     KIRCFrame _frame;
     private final ArrayList<Channel> _channels;
     private final String _host;
-    private String _channel;
     private String _nick;
     private String msg = "";
     
-    public KIRC(KIRCFrame frame, String host, String channel, String nick)
+    public KIRC(KIRCFrame frame, String host, String nick)
     {
         _frame   = frame;
         _host    = host;
-        _channel = channel;
         _nick    = nick;
         
         _channels = new ArrayList<>();
@@ -54,7 +52,6 @@ public class KIRC
             connectToServer();
             getStreams();
             sendIRCConnInfo();
-            joinChannel(_channel); //temporary: call from sendData after constructing a JOIN command
             processConnection();
         }
         catch(EOFException eofException)
@@ -193,17 +190,35 @@ public class KIRC
      
     private void sendData(final String message, final int channelIndex)
     {
+        String[] enterFieldMsg = message.split(" ");
+        
         try
         {
-            final String channelName = _channels.get(channelIndex).getChannelName();
+            if(enterFieldMsg[0].toLowerCase().equals("/join"))
+            {
+                if(enterFieldMsg.length != 2)
+                {
+                    if(channelIndex != -1)
+                        _frame.getKIRCFrame().displayMessage("\nIncorrect number of parameters", 0);
+                }
+                else
+                {
+                    final String channel = enterFieldMsg[1];
+                    joinChannel(channel);
+                }
+            }
+            else //normal message (PRIVMSG) to channel in focus
+            {
+                final String channelName = _channels.get(channelIndex).getChannelName();
             
-            //TODO: create IRC commands per user input from the text field event fire
-            // like /JOIN and /NICK, etc. Default for now is PRIVMSG
-            // call the functions like sendPART() from here after parse
-            output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
-            output.flush();
+                //TODO: create IRC commands per user input from the text field event fire
+                // like /JOIN and /NICK, etc. Default for now is PRIVMSG
+                // call the functions like sendPART() from here after parse
+                output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
+                output.flush();
             
-            _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
+                _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
+            }
         }
         catch(IOException ioException)
         {
@@ -243,6 +258,9 @@ public class KIRC
                 break;
             case "NICK":
                 processNICK(message);
+                break;
+            case "332":
+                process332(message);
                 break;
             case "353":
                 process353(message, msg);
@@ -350,6 +368,22 @@ public class KIRC
         if(channelFocus != -1)
             _frame.getKIRCFrame().setUserList(_channels.get(channelFocus).getUsersList().
                 toArray(new String[_channels.get(channelFocus).getUsersList().size()]));
+    }
+    
+    private void process332(final Message message) throws IOException
+    {
+        final String channelName   = message.getParameters().get(1);
+        final String channelNotice = message.getParameters().get(2);
+        
+        for(int i = 0; i < _channels.size(); i++)
+        {
+            if(_channels.get(i).getChannelName().equals(channelName))
+            {
+                _channels.get(i).setBanner(channelNotice);
+                _frame.getKIRCFrame().setBannerNow(channelNotice);
+                break;
+            }
+        }
     }
     
     private void process353(final Message message, final String originalMessage) throws IOException
