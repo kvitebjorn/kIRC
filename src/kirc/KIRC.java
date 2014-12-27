@@ -327,7 +327,10 @@ public class KIRC
             _channels.get(channelIndex).addUserToList(nick);
             final ArrayList<String> userList = _channels.get(channelIndex).getUsersList();
             if(_frame.getKIRCFrame().getChannelFocus() == channelIndex)
+            {
+                _frame.getKIRCFrame().updateUserCountLabel(userList.size());
                 _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
+            }
         }
     }
     
@@ -345,7 +348,10 @@ public class KIRC
             _channels.get(channelIndex).removeUserFromList(nick);
             final ArrayList<String> userList = _channels.get(channelIndex).getUsersList();
             if(_frame.getKIRCFrame().getChannelFocus() == channelIndex)
+            {
+                _frame.getKIRCFrame().updateUserCountLabel(userList.size());
                 _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
+            }
         }
     }
     
@@ -394,7 +400,6 @@ public class KIRC
         {
             final String[] users = message.getParameters().get(3).split(" ");
             _channels.get(channelIndex).setUsersList(users);
-            _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
         }
     }
     
@@ -406,7 +411,6 @@ public class KIRC
         {
             _frame.getKIRCFrame().setUserList(_channels.get(channelIndex).getUsersList().
                     toArray(new String[_channels.get(channelIndex).getUsersList().size()]));
-            _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
         }
     }
     

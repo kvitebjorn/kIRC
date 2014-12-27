@@ -87,12 +87,17 @@ public final class KIRCFrame extends javax.swing.JFrame
     {
         userList.removeAll();
         userList.setListData(users);
-        //TODO: wait for the end of user list command when setting user list
+        updateUserCountLabel(users.length);
     }
     
     public void setBannerNow(final String msg)
     {
         channelBanner.setText(msg);
+    }
+    
+    public void updateUserCountLabel(final int i)
+    {
+        userCountLabel.setText("Users (" + i + ")");
     }
 
     /**
@@ -110,7 +115,7 @@ public final class KIRCFrame extends javax.swing.JFrame
         channelPane = new javax.swing.JTabbedPane();
         enterField = new javax.swing.JTextField();
         userNameLabel = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        userCountLabel = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         channelBannerScrollPane = new javax.swing.JScrollPane();
         channelBanner = new javax.swing.JTextArea();
@@ -148,8 +153,8 @@ public final class KIRCFrame extends javax.swing.JFrame
         userNameLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         userNameLabel.setText("username");
 
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Users");
+        userCountLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        userCountLabel.setText("Users");
 
         channelBannerScrollPane.setBorder(null);
         channelBannerScrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -199,7 +204,7 @@ public final class KIRCFrame extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(userCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(userNameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(userListScrollPane, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -219,7 +224,7 @@ public final class KIRCFrame extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(channelPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
+                        .addComponent(userCountLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(userListScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -245,6 +250,7 @@ public final class KIRCFrame extends javax.swing.JFrame
         if(ch != null)
         {
             ArrayList<String> userList = ch.getUsersList();
+            updateUserCountLabel(userList.size());
             setUserList(userList.toArray(new String[userList.size()]));
             
             if(ch.getBanner().equals(""))
@@ -314,11 +320,11 @@ public final class KIRCFrame extends javax.swing.JFrame
     private javax.swing.JScrollPane channelBannerScrollPane;
     private javax.swing.JTabbedPane channelPane;
     private javax.swing.JTextField enterField;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel userCountLabel;
     private javax.swing.JList userList;
     private javax.swing.JScrollPane userListScrollPane;
     private javax.swing.JLabel userNameLabel;
