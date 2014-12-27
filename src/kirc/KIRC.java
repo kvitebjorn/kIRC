@@ -253,6 +253,9 @@ public class KIRC
             case "JOIN":
                 processJOIN(message);
                 break;
+            case "QUIT":
+                processQUIT(message);
+                break;
             case "PART":
                 processPART(message);
                 break;
@@ -353,6 +356,30 @@ public class KIRC
                 _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
             }
         }
+    }
+    
+    private void processQUIT(final Message message) throws IOException
+    {
+        final String prefix     = message.getPrefix();
+        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String reason     = message.getParameters().get(0);
+        final String channelMsg = prefix + " " + message.getCommand() + " :" + reason;
+        
+        for(int i = 0; i < _channels.size(); i++)
+            for(int j = 0; j < _channels.get(i).getUsersList().size(); j++)
+                if(_channels.get(i).getUsersList().get(j).contains(nick))
+                {
+                    _channels.get(i).removeUserFromList(nick);
+                    _frame.getKIRCFrame().displayMessage("\n" + channelMsg, i);
+                    
+                    if(_frame.getKIRCFrame().getChannelFocus() == i)
+                    {
+                        final ArrayList<String> userList = _channels.get(i).getUsersList();
+                        _frame.getKIRCFrame().updateUserCountLabel(userList.size());
+                        _frame.getKIRCFrame().setUserList(userList.toArray(new String[userList.size()]));
+                    }
+                    break;
+                }
     }
     
     private void processNICK(final Message message) throws IOException
