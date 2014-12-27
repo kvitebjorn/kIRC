@@ -137,12 +137,10 @@ public class KIRC
                     _nick + " :" + _nick + "\r\n";
             output.write(userMsg); 
             output.flush();
-            _frame.getKIRCFrame().displayMessage("\n" + userMsg, 0);
             
             final String nickMsg = "NICK " + _nick + "\r\n";
             output.write(nickMsg);
             output.flush();
-            _frame.getKIRCFrame().displayMessage("\n" + nickMsg, 0);
             
             waitForConn();
         }
@@ -194,30 +192,34 @@ public class KIRC
         
         try
         {
-            if(enterFieldMsg[0].toLowerCase().equals("/join"))
+            switch (enterFieldMsg[0].toLowerCase())
             {
-                if(enterFieldMsg.length != 2)
-                {
-                    if(channelIndex != -1)
-                        _frame.getKIRCFrame().displayMessage("\nIncorrect number of parameters", 0);
-                }
-                else
-                {
-                    final String channel = enterFieldMsg[1];
-                    joinChannel(channel);
-                }
-            }
-            else //normal message (PRIVMSG) to channel in focus
-            {
-                final String channelName = _channels.get(channelIndex).getChannelName();
-            
-                //TODO: create IRC commands per user input from the text field event fire
-                // like /JOIN and /NICK, etc. Default for now is PRIVMSG
-                // call the functions like sendPART() from here after parse
-                output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
-                output.flush();
-            
-                _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
+                case "/join":
+                    if(enterFieldMsg.length != 2)
+                    {
+                        if(channelIndex != -1)
+                            _frame.getKIRCFrame().displayMessage("\nIncorrect number of parameters", 0);
+                    }
+                    else
+                    {
+                        final String channel = enterFieldMsg[1];
+                        joinChannel(channel);
+                    }   
+                    break;
+                case "/quit":
+                case "/disconnect":
+                    sendQUIT();
+                    break;
+                    //normal message (PRIVMSG) to channel in focus
+                default:
+                    final String channelName = _channels.get(channelIndex).getChannelName();
+                    //TODO: create IRC commands per user input from the text field event fire
+                    // like /JOIN and /NICK, etc. Default for now is PRIVMSG
+                    // call the functions like sendPART() from here after parse
+                    output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
+                    output.flush();
+                    _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
+                    break;
             }
         }
         catch(IOException ioException)
@@ -307,7 +309,7 @@ public class KIRC
     private void processPRIVMSG(final Message message) throws IOException
     {
         final String prefix     = message.getPrefix();
-        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String nick       = prefix.substring(0, prefix.indexOf("!"));
         final String channel    = message.getParameters().get(0);
         final String channelMsg = nick + "> " + message.getParameters().get(1);
         final int channelIndex  = findChannelIndex(channel);
@@ -318,7 +320,7 @@ public class KIRC
     private void processJOIN(final Message message) throws IOException
     {
         final String prefix     = message.getPrefix();
-        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String nick       = prefix.substring(0, prefix.indexOf("!"));
         final String channel    = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
         final int channelIndex  = findChannelIndex(channel);
@@ -340,7 +342,7 @@ public class KIRC
     private void processPART(final Message message) throws IOException
     {
         final String prefix     = message.getPrefix();
-        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String nick       = prefix.substring(0, prefix.indexOf("!"));
         final String channel    = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + "ED " + channel;
         final int channelIndex  = findChannelIndex(channel);
@@ -360,9 +362,11 @@ public class KIRC
     
     private void processQUIT(final Message message) throws IOException
     {
-        final String prefix     = message.getPrefix();
-        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
-        final String reason     = message.getParameters().get(0);
+        final String prefix = message.getPrefix();
+        final String nick   = prefix.substring(0, prefix.indexOf("!")); 
+        String reason = "";
+        if(!message.getParameters().get(0).equals(""))
+            reason = message.getParameters().get(0);
         final String channelMsg = prefix + " " + message.getCommand() + " :" + reason;
         
         for(int i = 0; i < _channels.size(); i++)
@@ -385,7 +389,7 @@ public class KIRC
     private void processNICK(final Message message) throws IOException
     {
         final String prefix     = message.getPrefix();
-        final String nick       = prefix.substring(0, prefix.indexOf("!~"));
+        final String nick       = prefix.substring(0, prefix.indexOf("!"));
         final String newNick    = message.getParameters().get(0);
         final String newNickmsg = "\n" + nick + " is now known as " + newNick;
         
@@ -456,7 +460,7 @@ public class KIRC
     
     public void sendQUIT() throws IOException
     {
-        output.write("QUIT " + "\r\n");
+        output.write("QUIT\r\n");
         output.flush();
     }
 }
