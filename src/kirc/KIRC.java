@@ -394,8 +394,6 @@ public class KIRC
         {
             final String[] users = message.getParameters().get(3).split(" ");
             _channels.get(channelIndex).setUsersList(users);
-            //update user list panel
-            _frame.getKIRCFrame().setUserList(users);
             _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex); 
         }
     }
@@ -405,7 +403,11 @@ public class KIRC
         final String channel = message.getParameters().get(1);
         final int channelIndex = findChannelIndex(channel);
         if(channelIndex != -1)
+        {
+            _frame.getKIRCFrame().setUserList(_channels.get(channelIndex).getUsersList().
+                    toArray(new String[_channels.get(channelIndex).getUsersList().size()]));
             _frame.getKIRCFrame().displayMessage("\n" + originalMessage, channelIndex);
+        }
     }
     
     public void removeChannel(int i)
