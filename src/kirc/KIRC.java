@@ -22,6 +22,7 @@ public class KIRC
     private final ArrayList<Channel> _channels;
     private final String _host;
     private String _nick;
+    private String _oldNick; //incase of 433, etc
     private String msg = "";
     
     public KIRC(KIRCFrame frame, String host, String nick)
@@ -29,6 +30,7 @@ public class KIRC
         _frame   = frame;
         _host    = host;
         _nick    = nick;
+        _oldNick = "";
         
         _channels = new ArrayList<>();
         
@@ -138,9 +140,7 @@ public class KIRC
             output.write(userMsg); 
             output.flush();
             
-            final String nickMsg = "NICK " + _nick + "\r\n";
-            output.write(nickMsg);
-            output.flush();
+            sendNICK(_nick);
             
             waitForConn();
         }
@@ -210,12 +210,24 @@ public class KIRC
                 case "/disconnect":
                     sendQUIT();
                     break;
-                    //normal message (PRIVMSG) to channel in focus
+                case "/nick":
+                    if(enterFieldMsg.length != 2)
+                    {
+                        if(channelIndex != -1)
+                            _frame.getKIRCFrame().displayMessage("\nIncorrect number of parameters", 0);
+                    }
+                    else
+                    {
+                        _oldNick = _nick;
+                        final String newNick = enterFieldMsg[1];
+                        _nick = newNick;
+                        sendNICK(newNick);
+                        _frame.getKIRCFrame().displayMessage("\nNick changed to " + newNick, 0);
+                        _frame.getKIRCFrame().setUserNameLabel(newNick);
+                    }
+                    break;
                 default:
                     final String channelName = _channels.get(channelIndex).getChannelName();
-                    //TODO: create IRC commands per user input from the text field event fire
-                    // like /JOIN and /NICK, etc. Default for now is PRIVMSG
-                    // call the functions like sendPART() from here after parse
                     output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
                     output.flush();
                     _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
@@ -272,6 +284,9 @@ public class KIRC
                 break;
             case "366":
                 process366(message, msg);
+                break;
+            case "433":
+                process433(message, msg);
                 break;
             default:
                 //write in server tab for now
@@ -445,6 +460,13 @@ public class KIRC
         }
     }
     
+    private void process433(final Message message, final String originalMessage) throws IOException
+    {
+        _frame.getKIRCFrame().displayMessage("\n" + _nick + " is already in use", 0);
+        _nick = _oldNick;
+        _frame.getKIRCFrame().setUserNameLabel(_nick);
+    }
+    
     public void removeChannel(int i)
     {
         if(i < _channels.size())
@@ -461,6 +483,13 @@ public class KIRC
     public void sendQUIT() throws IOException
     {
         output.write("QUIT\r\n");
+        output.flush();
+    }
+    
+    private void sendNICK(final String nick) throws IOException
+    {
+        final String nickMsg = "NICK " + nick + "\r\n";
+        output.write(nickMsg);
         output.flush();
     }
 }

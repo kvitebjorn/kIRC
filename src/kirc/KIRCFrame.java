@@ -17,7 +17,7 @@ public final class KIRCFrame extends javax.swing.JFrame
     {
         initComponents();
         
-        kirc = new KIRC(this, "irc.freenode.org", "k-test");
+        kirc = new KIRC(this, "irc.freenode.org", "k-test2");
         
         userNameLabel.setText(kirc.getNick() + " λ");
         
@@ -98,6 +98,11 @@ public final class KIRCFrame extends javax.swing.JFrame
     public void updateUserCountLabel(final int i)
     {
         userCountLabel.setText("Users (" + i + ")");
+    }
+    
+    public void setUserNameLabel(final String nick)
+    {
+        userNameLabel.setText(nick + " λ");
     }
 
     /**
