@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.net.InetAddress;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class KIRC
 {
@@ -185,6 +186,33 @@ public class KIRC
             ioException.printStackTrace();
         }
     }
+    
+    private void startPrivateMsg(final String user, final String pvtMsg, Boolean iStartedThis)
+    {
+        try
+        {
+            if(iStartedThis)
+            {
+                output.write("PRIVMSG " + user + " :" + pvtMsg + "\r\n");
+                output.flush();
+            }
+
+            _channels.add(new Channel(user));
+            _frame.getKIRCFrame().addTab(user);
+            final int channelIndex = findChannelIndex(user);
+            _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
+            _frame.getKIRCFrame().displayMessage("Starting private message with " + user + "...", channelIndex);
+            
+            if(iStartedThis)
+                _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + pvtMsg, channelIndex);
+            else
+                _frame.getKIRCFrame().displayMessage("\n" + pvtMsg, channelIndex);
+        }
+        catch(IOException ioException)
+        {
+            ioException.printStackTrace();
+        }
+    }
      
     private void sendData(final String message, final int channelIndex)
     {
@@ -204,6 +232,31 @@ public class KIRC
                     {
                         final String channel = enterFieldMsg[1];
                         joinChannel(channel);
+                    }   
+                    break;
+                case "/msg":
+                    if(enterFieldMsg.length < 2)
+                    {
+                        if(channelIndex != -1)
+                            _frame.getKIRCFrame().displayMessage("\nIncorrect number of parameters", 0);
+                    }
+                    else
+                    {
+                        final String user = enterFieldMsg[1];
+                        int index = -1;
+                        
+                        for(int i = 0; i < _channels.size(); i++)
+                            if(_channels.get(i).getChannelName().toLowerCase().equals(user.toLowerCase()))
+                                index = findChannelIndex(user);
+                        
+                        String pvtMsg = "";
+                        for(int i = 2; i < enterFieldMsg.length; i++)
+                            pvtMsg = pvtMsg.concat(enterFieldMsg[i] + " ");
+                        
+                        if(index == -1)
+                            startPrivateMsg(user, pvtMsg, true);
+                        else
+                            sendPRIVMSG(pvtMsg, index);
                     }   
                     break;
                 case "/quit":
@@ -227,10 +280,7 @@ public class KIRC
                     }
                     break;
                 default:
-                    final String channelName = _channels.get(channelIndex).getChannelName();
-                    output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
-                    output.flush();
-                    _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
+                    sendPRIVMSG(message, channelIndex);
                     break;
             }
         }
@@ -268,7 +318,7 @@ public class KIRC
                 processJOIN(message);
                 break;
             case "QUIT":
-                processQUIT(message);
+                processQUIT(message, originalMessage);
                 break;
             case "PART":
                 processPART(message);
@@ -286,7 +336,7 @@ public class KIRC
                 process366(message, msg);
                 break;
             case "433":
-                process433(message, msg);
+                process433();
                 break;
             default:
                 //write in server tab for now
@@ -327,7 +377,20 @@ public class KIRC
         final String nick       = prefix.substring(0, prefix.indexOf("!"));
         final String channel    = message.getParameters().get(0);
         final String channelMsg = nick + "> " + message.getParameters().get(1);
-        final int channelIndex  = findChannelIndex(channel);
+        int channelIndex  = -1;
+        
+        if(channel.equals(_nick))
+        {
+            if(findChannelIndex(nick) != -1)
+                channelIndex = findChannelIndex(nick);
+            else
+            {
+                startPrivateMsg(nick, channelMsg, false);
+            }
+        }
+        else
+            channelIndex = findChannelIndex(channel);
+        
         if(channelIndex != -1)
             _frame.getKIRCFrame().displayMessage("\n" + channelMsg, channelIndex);        
     }
@@ -375,21 +438,17 @@ public class KIRC
         }
     }
     
-    private void processQUIT(final Message message) throws IOException
+    private void processQUIT(final Message message, final String originalMessage) throws IOException
     {
         final String prefix = message.getPrefix();
         final String nick   = prefix.substring(0, prefix.indexOf("!")); 
-        String reason = "";
-        if(!message.getParameters().get(0).equals(""))
-            reason = message.getParameters().get(0);
-        final String channelMsg = prefix + " " + message.getCommand() + " :" + reason;
         
         for(int i = 0; i < _channels.size(); i++)
             for(int j = 0; j < _channels.get(i).getUsersList().size(); j++)
                 if(_channels.get(i).getUsersList().get(j).contains(nick))
                 {
                     _channels.get(i).removeUserFromList(nick);
-                    _frame.getKIRCFrame().displayMessage("\n" + channelMsg, i);
+                    _frame.getKIRCFrame().displayMessage("\n" + originalMessage.substring(1), i);
                     
                     if(_frame.getKIRCFrame().getChannelFocus() == i)
                     {
@@ -460,7 +519,7 @@ public class KIRC
         }
     }
     
-    private void process433(final Message message, final String originalMessage) throws IOException
+    private void process433() throws IOException
     {
         _frame.getKIRCFrame().displayMessage("\n" + _nick + " is already in use", 0);
         _nick = _oldNick;
@@ -491,5 +550,13 @@ public class KIRC
         final String nickMsg = "NICK " + nick + "\r\n";
         output.write(nickMsg);
         output.flush();
+    }
+    
+    private void sendPRIVMSG(final String message, final int channelIndex) throws IOException
+    {
+        final String channelName = _channels.get(channelIndex).getChannelName();
+        output.write("PRIVMSG " + channelName + " :" + message + "\r\n");
+        output.flush();
+        _frame.getKIRCFrame().displayMessage("\n" + _nick + "> " + message, channelIndex);
     }
 }

@@ -12,6 +12,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.text.DefaultCaret;
 
 public class ChannelPane extends JPanel
     {
@@ -28,6 +29,10 @@ public class ChannelPane extends JPanel
             JScrollPane scrollPane = new JScrollPane(textArea);
             scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
             scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            
+            DefaultCaret caret = (DefaultCaret) textArea.getCaret();
+            caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+            
             add(scrollPane);
         }
         
