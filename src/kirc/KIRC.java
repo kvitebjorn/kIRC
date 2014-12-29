@@ -200,6 +200,8 @@ public class KIRC
             _channels.add(new Channel(user));
             _frame.getKIRCFrame().addTab(user);
             final int channelIndex = findChannelIndex(user);
+            _channels.get(channelIndex).addUserToList(_nick);
+            _channels.get(channelIndex).addUserToList(user);
             _frame.getKIRCFrame().setFocusOnChannel(channelIndex);
             _frame.getKIRCFrame().displayMessage("Starting private message with " + user + "...", channelIndex);
             
@@ -535,8 +537,11 @@ public class KIRC
     public void sendPARTOneChannel(int channelIndex) throws IOException
     {
         final String channelName = _channels.get(channelIndex).getChannelName();
-        output.write("PART " + channelName + " :" + "hadet" + "\r\n");
-        output.flush();
+        if(channelName.contains("#")) //avoid private messages
+        {
+            output.write("PART " + channelName + " :" + "hadet" + "\r\n");
+            output.flush();
+        }
     }
     
     public void sendQUIT() throws IOException
